@@ -79,6 +79,9 @@ inline int64_t auto_conversation_cache_mib(std::optional<uint64_t> available, in
 
 std::optional<uint64_t> conversation_mem_available(std::istream& meminfo);
 
+// The host's available physical memory right now (the wrapper the park-file owner reads; the caller owns the stream).
+std::optional<uint64_t> conversation_available_memory();
+
 inline bool conversation_memory_admit(std::optional<uint64_t> available,
                                       uint64_t allocation, uint64_t floor) {
     return available && *available >= floor && allocation <= *available - floor;

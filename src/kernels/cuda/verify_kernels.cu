@@ -1198,7 +1198,6 @@ bool gdn_in_proj_fused(const void* w_qkv, float* y_qkv, int n_qkv, const void* w
     return false;
 #endif
 }
-}
 
 void gdn_ab_multi(const float* x, const uint16_t* w_alpha, const uint16_t* w_beta, const float* dt, const float* ssm_a,
                   float* gate, float* beta, int n_embd, int h_v, int n_tok, void* stream) {

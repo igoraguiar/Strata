@@ -3233,9 +3233,9 @@ void RouterLookahead::note_cpu_experts(int64_t layer, const int32_t* experts, in
     int resident_pred = 0;
     for (int32_t e : pred)
         if (src_->resident_ptr(layer, e) != nullptr) ++resident_pred;
-    st_pred_ += resident_pred;
+    pf_pred_ += resident_pred;
     for (int i = 0; i < n; ++i)
-        if (std::find(pred.begin(), pred.end(), experts[i]) != pred.end()) ++st_hit_;
+        if (std::find(pred.begin(), pred.end(), experts[i]) != pred.end()) ++pf_hit_;
     for (const auto& pe : done) {
         st_pf_bytes_ += pe.second;
         for (int i = 0; i < n; ++i)
@@ -3246,7 +3246,7 @@ void RouterLookahead::note_cpu_experts(int64_t layer, const int32_t* experts, in
                              "%.1f%% of them predicted; predicted in RAM %.2f/layer; PCIe %.2f/layer; prefetched %.1f MB/layer, "
                              "%.1f%% of it computed by the CPU; lookahead skipped %lld, busy %.1f ms\n",
                      (long long) st_layers_, (long long) st_nopred_, (double) st_cpu_ / (double) st_layers_,
-                     st_cpu_ ? 100.0 * (double) st_hit_ / (double) st_cpu_ : 0.0, (double) st_pred_ / (double) st_layers_,
+                     st_cpu_ ? 100.0 * (double) pf_hit_ / (double) st_cpu_ : 0.0, (double) pf_pred_ / (double) st_layers_,
                      (double) st_pcie_ / (double) st_layers_, (double) st_pf_bytes_ / 1e6 / (double) st_layers_,
                      st_pf_bytes_ ? 100.0 * (double) st_pf_used_ / (double) st_pf_bytes_ : 0.0, (long long) skipped(), busy_ms());
         std::fflush(stderr);
@@ -3878,7 +3878,6 @@ bool FileExpertSource::pin_cache_complement(
                 std::fprintf(stderr, "FileExpertSource: STRATA_RESIDENT_LEND=1 ignored: the budget does not hold every "
                                      "expert outside the GPU cache (%lld of %lld)\n", (long long) held, (long long) n_comp);
             lend_from_slot = -1;
-        }
         }
         offsets.swap(ranked);
         bytes = at;

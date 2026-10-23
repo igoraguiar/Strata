@@ -561,8 +561,8 @@ __global__ void __launch_bounds__(Q32_THREADS) gr_up_q32_kernel(GrMulti m) {
         // the epilogue inputs of this lane's token, fetched while the dots run
         float rv = 0.0f, wn = 0.0f, rsc = 0.0f, bo = 0.0f, ip = 0.0f;
         bool apply = false;
-        if (owner) {
-            const FusedGrArgs& a = m.a[tk];
+        if (lane < T) {
+            const FusedGrArgs& a = m.a[lane];
             rv = a.R[i];
             wn = a.w_norm[i];
             rsc = a.rs[c];
@@ -570,17 +570,6 @@ __global__ void __launch_bounds__(Q32_THREADS) gr_up_q32_kernel(GrMulti m) {
             if (apply) { bo = a.bo_prev[d0 + dd]; ip = a.inj_prev[c]; }
         }
         float mine = 0.0f;
-        if constexpr (TS) {
-            float acc[P];
-#pragma unroll
-            for (int k = 0; k < P; ++k) acc[k] = 0.0f;
-#pragma unroll
-            for (int k = 0; k < MAX_T; ++k) {
-                acc[k] = dot8u_ptr(wa, lo[k] + lane * 8);
-                if (lane < LR / 8 - 32) acc[k] += dot8u_ptr(wb, lo[k] + (32 + lane) * 8);
-            }
-            mine = s26ts::tsum<P>(acc, lane);
-        } else {
 #pragma unroll
         for (int k = 0; k < MAX_T; ++k) {
             if (!EXACT_T && k >= T) break;
@@ -589,14 +578,13 @@ __global__ void __launch_bounds__(Q32_THREADS) gr_up_q32_kernel(GrMulti m) {
             acc = warp_sum(acc);
             if (lane == k) mine = acc;
         }
-        }
-        if (owner) {
+        if (lane < T) {
             if (apply) {
                 rv = fmaf(bo, 2.0f * sigmoidf_(ip / (float) HC), rv);
-                m.a[tk].R_out[i] = rv;
+                m.a[lane].R_out[i] = rv;
             }
             const float x = rv * wn * rsc;
-            g[tk][c][dd] = x * sigmoidf_(mine);
+            g[lane][c][dd] = x * sigmoidf_(mine);
         }
     }
     __syncthreads();

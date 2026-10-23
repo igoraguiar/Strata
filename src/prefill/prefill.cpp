@@ -192,7 +192,6 @@ inline int64_t stream_all_min() {
     if (g_tune_stream_min > 0) return g_tune_stream_min;
     return g_stream_min_share > 0 ? g_stream_min_share : kStreamAllMinDefault;
 }
-}
 // STRATA_PREFILL_CPU_SHARE (opt-in; set_cpu_pool): a chunk below stream_all_min() hands the decode CPU pool - idle
 // while a prompt is read - the non-resident experts few of its tokens route to, instead of streaming them over PCIe.
 // `auto`: the share measured, each layer's CPU time per expert and the GPU's per streamed expert (CUDA events around
@@ -4215,7 +4214,6 @@ bool Prefill::run_impl(const int64_t* tokens, int64_t n, int64_t pos0, std::stri
                                 } else {
                                     m.cpu_rows_n = cap_rows * N;
                                 }
-                            }
                             }
                         }
                         // multi-GPU: the rows of the experts the peer computes go last, as one block [rows_local, T*K)

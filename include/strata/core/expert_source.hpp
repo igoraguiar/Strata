@@ -396,7 +396,8 @@ private:
     size_t pf_budget_ = 0;
     bool pf_stats_ = false;
     // stats (dispatcher thread only)
-    int64_t st_layers_ = 0, st_cpu_ = 0, st_pred_ = 0, st_hit_ = 0, st_pcie_ = 0, st_nopred_ = 0;
+    // the L3-prefetch counters (note_cpu_experts); st_layers_ / st_nopred_ are the lookahead's own, shared below
+    int64_t st_cpu_ = 0, pf_pred_ = 0, pf_hit_ = 0, st_pcie_ = 0;
     uint64_t st_pf_bytes_ = 0, st_pf_used_ = 0;
     std::vector<std::vector<uint16_t>> routers_;
     int64_t n_embd_ = 0, n_expert_ = 0;

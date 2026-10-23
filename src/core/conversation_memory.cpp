@@ -252,6 +252,21 @@ std::optional<uint64_t> conversation_mem_available(std::istream& meminfo) {
     return meminfo_kb_bytes(meminfo, "MemAvailable:");
 }
 
+std::optional<uint64_t> conversation_available_memory() {
+#if defined(_WIN32)
+    MEMORYSTATUSEX status{};
+    status.dwLength = sizeof status;
+    if (GlobalMemoryStatusEx(&status)) return status.ullAvailPhys;
+    return {};
+#elif defined(__linux__)
+    std::ifstream meminfo("/proc/meminfo");
+    if (!meminfo) return {};
+    return conversation_mem_available(meminfo);
+#else
+    return {};
+#endif
+}
+
 void set_memory_limit_bytes(uint64_t bytes) { g_memory_limit_bytes.store(bytes, std::memory_order_relaxed); }
 uint64_t memory_limit_bytes() { return g_memory_limit_bytes.load(std::memory_order_relaxed); }
 

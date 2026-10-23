@@ -77,7 +77,6 @@
 #if defined(STRATA_NATIVE_EXPERTS)
 #include "strata/kernels/cpu/native_expert.hpp"
 #endif
-#endif
 #include "strata/core/native_dense.hpp"
 #include "strata/program/batch_read.hpp"
 #include "strata/program/logits_selection.hpp"
