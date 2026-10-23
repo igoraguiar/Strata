@@ -1720,7 +1720,8 @@ if(STRATA_NATIVE_EXPERTS)
                                            src/kernels/cpu/iq_avx2.cpp src/kernels/cpu/kq_avx2.cpp
                                            src/kernels/cpu/kq_avx1.cpp src/kernels/cpu/q2_avx1.cpp src/kernels/cpu/iq_avx1.cpp
                                            src/kernels/cpu/nvfp4_avx512.cpp src/kernels/cpu/nvfp4_avx2.cpp
-                                           src/kernels/cpu/tq_cpu.cpp src/kernels/cpu/tq_avx2.cpp src/kernels/cpu/tq_avx512.cpp)
+                                           src/kernels/cpu/tq_cpu.cpp src/kernels/cpu/tq_avx2.cpp src/kernels/cpu/tq_avx512.cpp
+                                           src/kernels/cpu/kq_avx512.cpp)
   target_include_directories(strata_kernels_cpu PRIVATE third_party/ggml)
   if(MSVC)
     set_source_files_properties(src/kernels/cpu/iq_avx512.cpp src/kernels/cpu/nvfp4_avx512.cpp
@@ -1747,6 +1748,8 @@ if(STRATA_NATIVE_EXPERTS)
     set_source_files_properties(src/kernels/cpu/tq_avx2.cpp PROPERTIES COMPILE_OPTIONS "-mavx2;-mfma;-mf16c")
     set_source_files_properties(src/kernels/cpu/tq_avx512.cpp PROPERTIES COMPILE_OPTIONS
                                 "-mavx512f;-mavx512bw;-mavx512vl;-mavx512vnni;-mavx512vbmi;-mavx2;-mfma;-mf16c")
+    set_source_files_properties(src/kernels/cpu/kq_avx512.cpp PROPERTIES COMPILE_OPTIONS
+                                "-mavx512f;-mavx512bw;-mavx512vl;-mavx512dq;-mavx512vnni;-mfma;-mf16c")
     set_source_files_properties(src/kernels/cpu/kq_avx1.cpp PROPERTIES COMPILE_OPTIONS "-mavx")
     # the older CPUs' Q2_0 rows and activation quantizer (q2_avx1.cpp, issue #1699): SSE4.2 + AVX with
     # AVX2/FMA/F16C explicitly off, so a -march=native build host cannot leak AVX2 code into the file that
@@ -1801,6 +1804,13 @@ if(STRATA_NATIVE_EXPERTS)
   target_link_libraries(iq_avx1_parity PRIVATE strata_kernels_cpu)
   if(STRATA_BUILD_TESTS)
     add_test(NAME iq_avx1_parity COMMAND iq_avx1_parity)
+  endif()
+  # q5opt round 3 / r6-pf: the AVX-512 Q5_K / Q8_0 multi-token rows bit for bit against ggml-cpu's vec_dot (CPU only)
+  add_executable(kq512_parity src/kernels/cpu/kq512_parity.cpp)
+  target_link_libraries(kq512_parity PRIVATE strata_kernels_cpu)
+  if(STRATA_BUILD_TESTS)
+    add_test(NAME kq512_parity COMMAND kq512_parity)
+  endif()
   endif()
   # the AVX-2 Q8_K activation quantizer against ggml's, byte for byte (--bench: its time)
   add_executable(q8k_quant_parity src/kernels/cpu/q8k_quant_parity.cpp)
