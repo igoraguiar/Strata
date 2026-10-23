@@ -602,6 +602,7 @@ struct Stager {
     }
     void work() {
         cudaSetDevice(device);
+        strata::kernels::cpu::helper_thread_affinity();   // q5opt r6-mem: STRATA_HELPER_CPUS (off the host's CPU)
         uint32_t seen = 0;
         for (;;) {
             {
@@ -3047,6 +3048,7 @@ bool Prefill::run_impl(const int64_t* tokens, int64_t n, int64_t pos0, std::stri
                 strata::platform::name_this_thread("strata-issue");
                 strata::aux_cpus::pin_current_thread();
                 const core::OnDevice od(m.device);
+                strata::kernels::cpu::helper_thread_affinity();   // q5opt r6-mem: STRATA_HELPER_CPUS
                 for (size_t idx = 0; idx < seq.size(); ++idx) {
                     while (idx >= a_consumed.load(std::memory_order_acquire) + (size_t) m.ring) {
                         if (a_stop.load(std::memory_order_acquire)) return;
